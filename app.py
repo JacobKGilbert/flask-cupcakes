@@ -32,30 +32,35 @@ def get_or_add_cupcakes():
       db.session.add(cupcake)
       db.session.commit()
 
-      response_body = {cupcake: {
+      response_body = {'cupcake': {
+        'id': cupcake.id,
         'flavor': flavor,
         'size' : size,
         'rating' : rating,
         'image' : image
       }}
       
-      res = make_response(jsonify(response_body), 200)
+      res = make_response(jsonify(response_body), 201)
 
       return res
     else:
       return make_response(jsonify({"message": "Request body must be JSON"}), 400)
   else:
     cupcakes = Cupcake.query.all()
-    response_body = {cupcakes: []}
+    response_body = {}
+    cpck_list = []
 
     for cupcake in cupcakes:
       cc_dict = {
+        'id': cupcake.id,
         'flavor': cupcake.flavor,
         'size': cupcake.size,
         'rating': cupcake.rating,
         'image': cupcake.image
       }
-      response_body['cupcakes'].append(cc_dict)
+      cpck_list.append(cc_dict)
+
+    response_body['cupcakes'] = cpck_list
 
     res = make_response(jsonify(response_body), 200)
 
@@ -67,10 +72,13 @@ def get_cupcake_data(cupcake_id):
   cupcake = Cupcake.query.get_or_404(cupcake_id)
 
   response_body = {
+    'cupcake': {
+      'id': cupcake.id,
       'flavor': cupcake.flavor,
       'size': cupcake.size,
       'rating': cupcake.rating,
       'image': cupcake.image
+    }
   }
 
   res = make_response(jsonify(response_body), 200)
@@ -78,7 +86,7 @@ def get_cupcake_data(cupcake_id):
   return res
 
 
-@app.route('/api/cupcakes/<int:cupcake_id>/update', methods=['PATCH'])
+@app.route('/api/cupcakes/<int:cupcake_id>', methods=['PATCH'])
 def update_cupcake_data(cupcake_id):
   if request.is_json:
     req = request.get_json()
@@ -91,12 +99,15 @@ def update_cupcake_data(cupcake_id):
 
     db.session.commit()
 
-    response_body = {cupcake: {
+    response_body = {
+      'cupcake': {
+        'id': cupcake.id,
         'flavor': cupcake.flavor,
         'size': cupcake.size,
         'rating': cupcake.rating,
         'image': cupcake.image
-    }}
+        }
+    }
 
     res = make_response(jsonify(response_body), 200)
 
@@ -105,10 +116,10 @@ def update_cupcake_data(cupcake_id):
     return make_response(jsonify({"message": "Request body must be JSON"}), 400)
 
 
-@app.route('/api/cupcakes/<int:cupcake_id>/delete', methods=['DELETE'])
+@app.route('/api/cupcakes/<int:cupcake_id>', methods=['DELETE'])
 def delete_cupcake(cupcake_id):
   cupcake = Cupcake.query.get_or_404(cupcake_id)
-  cupcake.delete()
+  Cupcake.query.filter(Cupcake.id == cupcake_id).delete()
   db.session.commit()
 
   return make_response(jsonify({"message": "Deleted"}), 200)
