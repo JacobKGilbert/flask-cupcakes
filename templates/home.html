@@ -4,12 +4,97 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
   <script src="https://cdn.jsdelivr.net/npm/axios@0.21.1/dist/axios.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
-  <script src="/static/javascript/app.js"></script>
+
   <title>Cupcake Home</title>
 </head>
 <body>
+
+  <form action="/api/cupcakes" method="POST">
+    <div class="form-floating mb-3">
+      <input type="text" class="form-control" id="flavor" name="flavor" required>
+      <label for="flavor">Flavor</label>
+    </div>
+    <div class="form-floating mb-3">
+      <input type="text" class="form-control" id="size" name="size" required>
+      <label for="size">Size</label>
+    </div>
+    <div class="form-floating mb-3">
+      <input type="number" class="form-control" id="rating" name="rating" min="1" max="10" required>
+      <label for="rating">Rating</label>
+    </div>
+    <div class="form-floating mb-3">
+      <input type="url" class="form-control" id="image" name="image">
+      <label for="image">Image</label>
+    </div>
+    <button type="submit" class="btn btn-success">Add Cupcake</button>
+  </form>
+
+  <div class="row row-cols-1 row-cols-md-2 g-4"></div>
   
+  <script src="/static/javascript/app.js"></script>
+  <script>
+
+    function addCupcakesToDOM(cupcake) {
+      // Create cupcake card
+      let cupcakeCard = $(`
+          <div class= "col">
+            <div class="card w-50">
+              <img src="${cupcake.image}" class="card-img-top" alt="">
+              <div class="card-body">
+                <h5 class="card-title">Flavor: ${cupcake.flavor}</h5>
+                <p class="card-text">Rating: ${cupcake.rating}</p>
+                <p class="card-text">Size: ${cupcake.size}</p>
+              </div>
+            </div>
+          </div>
+        `)
+
+      $('.row').append(cupcakeCard)
+    }
+
+    async function getCupcakesToShow() {
+        try {
+          let res = await axios.get('/api/cupcakes')
+          cupcakes = res.data.cupcakes
+          for (const cupcake of cupcakes) {
+            addCupcakesToDOM(cupcake)
+          }
+          
+        } catch (err) {
+          console.log(err)
+        }
+      }
+
+    getCupcakesToShow()
+
+    $('form').submit( async function (evt) {
+        evt.preventDefault()
+
+        form = evt.currentTarget
+        flavor = $(form[0]).val()
+        size = $(form[1]).val()
+        rating = $(form[2]).val()
+        image = $(form[3]).val()
+
+        try {
+          let res = await axios.post('/api/cupcakes', { flavor: `${flavor}`, size: `${size}`, rating: `${rating}`, image: `${image}` })
+          
+          cupcake = res.data.cupcake
+          addCupcakesToDOM(cupcake)
+
+        } catch (err) {
+          console.log(err)
+        }
+
+        form.reset()
+      })
+  </script>
 </body>
 </html>
